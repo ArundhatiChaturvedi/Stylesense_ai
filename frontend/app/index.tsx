@@ -17,8 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 
-const profilePic = require("../assets/profile_pic.png"); 
-const splashBg = require("../assets/splash_bg.png");  
+const profilePic = require("../assets/images/profile_pic.png"); 
+const splashBg = require("../assets/images/splash_bg.png");  
 
 export default function HomeScreen() {
   const [inputText, setInputText] = useState('');
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     marginBottom: 40,
-    marginTop: 150, // extra push down
+    marginTop: 150,
   },
   greetingText: {
     fontSize: 18,
