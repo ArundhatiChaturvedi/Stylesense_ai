@@ -1,6 +1,7 @@
 import chromadb
 import os
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
 
 # Load environment variables
 load_dotenv()
@@ -8,17 +9,18 @@ load_dotenv()
 CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
 CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000))
 
-# ChromaDB Collection Names (The "Drawers" in your filing cabinet)
-COLLECTION_USER_WARDROBE = "user_wardrobe"
-COLLECTION_PRODUCT_CATALOG = "product_catalog"
-COLLECTION_STYLE_INSPIRATION = "style_inspiration"
+# Initialize embedding model
+EMBEDDING_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
+
+# ChromaDB Collection Names updated to match your datasets
+COLLECTION_ORDER_HISTORY = "Order_History"
+COLLECTION_MYNTRA_CATALOG = "myntra202305041052"
+COLLECTION_CELEB_STYLES = "Celeb_FBI_Dataset"
 
 def get_chroma_client():
     """Returns the HTTP client to connect to the dedicated ChromaDB server."""
-    # Note: The ChromaDB server must be running separately (e.g., using 'chroma run')
     try:
         client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
-        # Check connection by listing collections (throws error if connection fails)
         client.list_collections() 
         return client
     except Exception as e:
@@ -28,12 +30,38 @@ def get_chroma_client():
 
 def setup_collections(client):
     """Creates the necessary collections if they don't exist."""
+    if not client:
+        return {}
     collections = {}
-    collections[COLLECTION_USER_WARDROBE] = client.get_or_create_collection(name=COLLECTION_USER_WARDROBE)
-    collections[COLLECTION_PRODUCT_CATALOG] = client.get_or_create_collection(name=COLLECTION_PRODUCT_CATALOG)
-    collections[COLLECTION_STYLE_INSPIRATION] = client.get_or_create_collection(name=COLLECTION_STYLE_INSPIRATION)
+    collections[COLLECTION_ORDER_HISTORY] = client.get_or_create_collection(name=COLLECTION_ORDER_HISTORY)
+    collections[COLLECTION_MYNTRA_CATALOG] = client.get_or_create_collection(name=COLLECTION_MYNTRA_CATALOG)
+    collections[COLLECTION_CELEB_STYLES] = client.get_or_create_collection(name=COLLECTION_CELEB_STYLES)
     print("ChromaDB collections verified/created successfully.")
     return collections
+
+def create_embedding(text):
+    """Create embedding for given text."""
+    try:
+        return EMBEDDING_MODEL.encode(text).tolist()
+    except Exception as e:
+        print(f"Error creating embedding: {e}")
+        return None
+
+def process_and_add_item(collection, text, metadata, item_id):
+    """Process and add item to collection."""
+    try:
+        embedding = create_embedding(text)
+        if embedding:
+            collection.add(
+                embeddings=[embedding],
+                documents=[text],
+                metadatas=[metadata],
+                ids=[item_id]
+            )
+            return True
+    except Exception as e:
+        print(f"Error adding item to collection: {e}")
+    return False
 
 # Global client variable
 CHROMA_CLIENT = get_chroma_client()

@@ -1,148 +1,161 @@
 import os
 import requests
+import google.generativeai as genai
 from dotenv import load_dotenv
-from openai import OpenAI
-from database import CHROMA_COLLECTIONS, COLLECTION_PRODUCT_CATALOG, COLLECTION_USER_WARDROBE, COLLECTION_STYLE_INSPIRATION, EMBEDDING_MODEL
+from .database import CHROMA_COLLECTIONS, COLLECTION_MYNTRA_CATALOG, COLLECTION_ORDER_HISTORY, COLLECTION_CELEB_STYLES, create_embedding
+from sentence_transformers import SentenceTransformer
 
 # --- Setup ---
 load_dotenv()
-OPENAI_CLIENT = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+EMBEDDING_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
+GENERATIVE_MODEL = genai.GenerativeModel('gemini-2.5-flash')
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 # --- Helper Functions ---
-
 def get_weather(location: str):
-    """Mocks or calls a real Weather API (e.g., OpenWeatherMap)."""
+    """Calls a real Weather API to get current weather info."""
     try:
-        # Example API call structure (requires an actual key and endpoint)
-        # response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={WEATHER_API_KEY}&units=metric")
-        # data = response.json()
-        
-        # HACKATHON MOCK: Simulate a response
-        temp = 28 
-        condition = "Sunny with a chance of light breeze"
-        return f"The weather in {location} is {temp}°C and {condition}. Dress light but consider a jacket."
-    except Exception:
+        # Check if API key is available
+        if not WEATHER_API_KEY:
+            return f"Weather data for {location} is unavailable. API key not configured."
+            
+        response = requests.get(f"https://api.weatherapi.com/v1/current.json?key={WEATHER_API_KEY}&q={location}&aqi=no")
+        response.raise_for_status()
+        data = response.json()
+        temp = data['current']['temp_c']
+        condition = data['current']['condition']['text']
+        return f"The weather in {location} is {temp}°C with {condition}. Dress accordingly."
+    except requests.exceptions.RequestException as e:
+        print(f"Weather API request failed: {e}")
+        return f"Weather data for {location} is unavailable. Assume mild conditions."
+    except KeyError as e:
+        print(f"Weather API response missing expected data: {e}")
+        return f"Weather data for {location} is unavailable. Assume mild conditions."
+    except Exception as e:
+        print(f"Unexpected error getting weather: {e}")
         return f"Weather data for {location} is unavailable. Assume mild conditions."
 
 def semantic_search(query_text: str, collection_name: str, user_id: str = None, n_results: int = 3):
     """Performs a semantic search on a specified ChromaDB collection."""
     try:
-        # 1. Embed the search query
-        query_vector = EMBEDDING_MODEL.encode(query_text).tolist()
+        if collection_name not in CHROMA_COLLECTIONS:
+            print(f"Collection {collection_name} not found")
+            return []
         
-        # 2. Build the filter for user-specific data
-        filter_clause = {"user_id": user_id} if user_id else None
+        collection = CHROMA_COLLECTIONS[collection_name]
+        query_embedding = create_embedding(query_text)
         
-        # 3. Query the collection
-        results = CHROMA_COLLECTIONS[collection_name].query(
-            query_embeddings=[query_vector],
-            n_results=n_results,
-            where=filter_clause,
-            include=['documents', 'metadatas']
+        if not query_embedding:
+            return []
+        
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=n_results
         )
         
-        # Format results: [{'text': doc, 'meta': meta}, ...]
         formatted_results = []
-        for doc, meta in zip(results['documents'][0], results['metadatas'][0]):
-            formatted_results.append({'text': doc, 'meta': meta})
-            
+        for i in range(len(results['documents'][0])):
+            formatted_results.append({
+                'text': results['documents'][0][i],
+                'meta': results['metadatas'][0][i] if results['metadatas'][0] else {},
+                'distance': results['distances'][0][i] if results.get('distances') else 0
+            })
+        
         return formatted_results
-
+        
     except Exception as e:
-        print(f"Search failed for {collection_name}: {e}")
+        print(f"Error in semantic search: {e}")
         return []
 
 # --- Core Logic ---
-
 def generate_style_recommendation(user_id: str, user_prompt: str, location: str, emotion: str):
-    """
-    Orchestrates the entire Dual-RAG process.
-    """
+    """Orchestrates the entire Dual-RAG process."""
     
-    # 1. Get Contextual Data
+    # Get weather information
     weather_info = get_weather(location)
     
-    # 2. Find "Fashion Twin" (Style Inspiration RAG)
-    # The prompt finds a twin that matches the user's current style AND the desired vibe
-    twin_prompt = f"The user's current style is defined by their closet. Based on their need: '{user_prompt}' and their current emotion: '{emotion}', find a celebrity who is the perfect style twin to match this vibe."
+    # Search for celebrity style inspiration
+    twin_prompt = f"Based on the user's request '{user_prompt}' and their emotion '{emotion}', find a celebrity style."
+    twin_results = semantic_search(twin_prompt, COLLECTION_CELEB_STYLES, n_results=1)
     
-    # NOTE: For a real twin match, we would embed the user's entire wardrobe/profile first.
-    # For the hackathon, we use the prompt to search the celebrity index.
-    twin_results = semantic_search(twin_prompt, COLLECTION_STYLE_INSPIRATION, n_results=1)
-    
-    if not twin_results:
-        celebrity_twin = "Zendaya (Default Style Twin)"
-        twin_description = "A sophisticated, versatile style icon."
-    else:
-        celebrity_twin = twin_results[0]['meta'].get('celebrity', 'Unknown Twin')
-        twin_description = twin_results[0]['text']
+    celebrity_twin = twin_results[0]['meta'].get('celebrity', 'Zendaya') if twin_results else "Zendaya"
+    twin_description = twin_results[0]['text'] if twin_results else "A versatile and chic style icon."
 
-    # 3. LLM Generates Internal Outfit Concept
-    # We ask the LLM to design the perfect outfit first
+    # Generate outfit concept
     concept_prompt = f"""
-    You are StyleSense AI. The user is: '{user_id}'.
-    User Prompt: '{user_prompt}'
-    User Emotion: '{emotion}'
-    Weather: {weather_info}
-    Inspiration: {celebrity_twin} - {twin_description}
-
-    First, conceptualize one high-level outfit inspired by {celebrity_twin} that fits the prompt, emotion, and weather.
+    You are StyleSense AI. Based on the user's prompt '{user_prompt}', the weather '{weather_info}', and inspiration from {celebrity_twin}, conceptualize one ideal outfit.
     Respond ONLY with a detailed list of 3 clothing items (e.g., 'A tailored navy blue blazer', 'White silk blouse', 'High-waisted black trousers').
     """
-    # Use a faster, constrained call to get the structured output
-    concept_response = OPENAI_CLIENT.chat.completions.create(
-        model="gpt-4-turbo",  # Use a powerful model for reasoning
-        messages=[{"role": "user", "content": concept_prompt}],
-        temperature=0.3
-    )
-    # This concept is the 'search query' for the RAG
-    outfit_concept_list = concept_response.choices[0].message.content.split('\n')
+    
+    try:
+        concept_response = GENERATIVE_MODEL.generate_content(concept_prompt)
+        outfit_concept_text = concept_response.text.strip()
+        outfit_concept_list = [item.strip() for item in outfit_concept_text.split('\n') if item.strip()]
+    except Exception as e:
+        print(f"Error generating outfit concept: {e}")
+        outfit_concept_list = ["Casual shirt", "Comfortable jeans", "Sneakers"]
 
-    # 4. Dual RAG Retrieval
     items_owned = []
     items_to_buy = []
     
-    for item_concept in outfit_concept_list:
-        # Search User's Closet
-        owned_results = semantic_search(item_concept, COLLECTION_USER_WARDROBE, user_id=user_id, n_results=1)
-        if owned_results and owned_results[0]['text'] != item_concept: # Found a close match
-            items_owned.append(owned_results[0]['text'])
+    # Check user's wardrobe for each item
+    for item_concept in outfit_concept_list[:3]:  # Limit to 3 items
+        if not item_concept:
+            continue
+            
+        wardrobe_results = semantic_search(item_concept, COLLECTION_ORDER_HISTORY, user_id=user_id, n_results=1)
+        
+        if wardrobe_results:
+            items_owned.append({
+                "item": item_concept,
+                "owned_item": wardrobe_results[0]['text'],
+                "confidence": round(1 - wardrobe_results[0].get('distance', 0.5), 2)
+            })
         else:
-            # If not owned, search the Product Catalog for a shoppable match
-            buy_results = semantic_search(item_concept, COLLECTION_PRODUCT_CATALOG, n_results=1)
-            if buy_results:
-                # Mock a link for the hackathon
-                link = f"http://myntra.com/product/{buy_results[0]['meta'].get('brand', 'N/A')}"
-                items_to_buy.append({"name": buy_results[0]['text'], "link": link})
+            # Search for similar items to buy
+            catalog_results = semantic_search(item_concept, COLLECTION_MYNTRA_CATALOG, n_results=1)
+            
+            if catalog_results:
+                items_to_buy.append({
+                    "item": item_concept,
+                    "suggested_product": catalog_results[0]['text'],
+                    "brand": catalog_results[0]['meta'].get('brand', 'Unknown'),
+                    "link": catalog_results[0]['meta'].get('link', ''),
+                    "confidence": round(1 - catalog_results[0].get('distance', 0.5), 2)
+                })
+            else:
+                items_to_buy.append({
+                    "item": item_concept,
+                    "suggested_product": f"Search for: {item_concept}",
+                    "brand": "Various",
+                    "link": "",
+                    "confidence": 0.7
+                })
 
-    # 5. Final LLM Synthesis
-    final_synthesis_prompt = f"""
-    You are StyleSense AI. Your goal is to deliver the final, highly personalized recommendation.
-    User Prompt: '{user_prompt}'
-    Weather: {weather_info}
-    Inspiration: {celebrity_twin}
-
-    Items the user should use from their closet: {items_owned if items_owned else 'None found.'}
-    New items to buy to complete the look: {items_to_buy if items_to_buy else 'None needed.'}
-
-    Craft a seamless, encouraging response. 
-    1. Start by mentioning the twin and the confidence vibe.
-    2. Suggest the full outfit, clearly telling the user which items to **Use** and which to **Buy**.
-    3. Include a final, weather-aware styling tip.
-    4. Respond with just the final text of the recommendation.
+    # Generate final recommendation
+    final_prompt = f"""
+    Create a cohesive style recommendation summary:
+    - User wants: {user_prompt}
+    - Weather: {weather_info}
+    - Celebrity inspiration: {celebrity_twin}
+    - Items owned: {[item['owned_item'] for item in items_owned]}
+    - Items to buy: {[item['suggested_product'] for item in items_to_buy]}
+    
+    Provide styling tips and how to put the look together.
     """
     
-    final_response = OPENAI_CLIENT.chat.completions.create(
-        model="gpt-4-turbo",
-        messages=[{"role": "user", "content": final_synthesis_prompt}],
-        temperature=0.7
-    )
+    try:
+        final_response = GENERATIVE_MODEL.generate_content(final_prompt)
+        final_recommendation = final_response.text.strip()
+    except Exception as e:
+        print(f"Error generating final recommendation: {e}")
+        final_recommendation = f"Style inspiration from {celebrity_twin}. Mix your owned items with suggested purchases for a complete look."
 
     return {
         "celebrity_twin": celebrity_twin,
         "weather_info": weather_info,
-        "final_recommendation": final_response.choices[0].message.content,
+        "final_recommendation": final_recommendation,
         "items_owned": items_owned,
-        "items_to_buy": [item['name'] for item in items_to_buy] # Return just names for Pydantic model
+        "items_to_buy": items_to_buy
     }
