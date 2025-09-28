@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+chromadb
+sentence-transformers
+requests # For the Weather API
+pandas # For reading CSV datasets
+Pillow # For basic image handling (if you mock image analysis)
+google-generativeai
