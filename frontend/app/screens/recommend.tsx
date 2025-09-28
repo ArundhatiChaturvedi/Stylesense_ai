@@ -18,8 +18,8 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const splashBg = require("../../assets/images/splash_bg.png"); 
 const celebImage = require("../../assets/images/margo.jpg"); 
 
-const SASSAFRAS_LINK = "https://www.google.com/search?q=http://myntra.com/product/SASSAFRAS";
-const ROADSTER_LINK = "https://www.google.com/search?q=http://myntra.com/product/Roadster";
+const SASSAFRAS_LINK = "https://www.myntra.com/dresses/bebe/bebe-sequin-embellished-halter-neck-sleeveless-bodycon-party-maxi-dress/34160432/buy";
+const ROADSTER_LINK = "hhttps://www.myntra.com/heels/shrivas+by+archita+mehta/shrivas-by-archita-mehta-women-embellished-backstrap-pointed-toe-block-mules/36947910/buy";
 
 export default function RecommendScreen() {
   const router = useRouter(); 
@@ -80,7 +80,7 @@ export default function RecommendScreen() {
                 <MaterialCommunityIcons name="shopping" size={20} color="#e68998" style={styles.shopIcon} />
                 <Text style={styles.listItemText}>
                   <Text style={styles.boldText}>Sequin Embellished A-line Dress, Rose Gold </Text>
-                  <Text style={styles.linkText} onPress={() => handleLinkPress(SASSAFRAS_LINK)}>(by SASSAFRAS)</Text>: This dress is the core of your sparkle. The A-line cut is flattering and feels sophisticated.
+                  <Text style={styles.linkText} onPress={() => handleLinkPress(SASSAFRAS_LINK)}>(Link)</Text>: This dress is the core of your sparkle. The A-line cut is flattering and feels sophisticated.
                 </Text>
               </View>
 
@@ -88,7 +88,7 @@ export default function RecommendScreen() {
                 <MaterialCommunityIcons name="shopping" size={20} color="#e68998" style={styles.shopIcon} />
                 <Text style={styles.listItemText}>
                   <Text style={styles.boldText}>Pointed-toe Slingback Heels, Black Suede </Text>
-                  <Text style={styles.linkText} onPress={() => handleLinkPress(ROADSTER_LINK)}>(by Roadster)</Text>: These will elongate your legs and contrast perfectly with the rose gold sequins for maximum chicness.
+                  <Text style={styles.linkText} onPress={() => handleLinkPress(ROADSTER_LINK)}>(Link)</Text>: These will elongate your legs and contrast perfectly with the rose gold sequins for maximum chicness.
                 </Text>
               </View>
 

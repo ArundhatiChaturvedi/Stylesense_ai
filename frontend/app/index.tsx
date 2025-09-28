@@ -12,25 +12,65 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Animated,
+  ActivityIndicator,
+  Alert, 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-// 1. IMPORT useRouter from expo-router
 import { useRouter } from 'expo-router'; 
+import * as ImagePicker from 'expo-image-picker'; 
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-// NOTE: Please ensure these paths are correct, based on your previous fixes
 const profilePic = require("../assets/images/profile_pic.png"); 
-const splashBg = require("../assets/images/splash_bg.png");  
+const splashBg = require("../assets/images/splash_bg.png"); 
+interface UploadProgressViewProps {
+  progress: number; 
+  statusText: string;
+}
+
+const UploadProgressView: React.FC<UploadProgressViewProps> = ({ progress, statusText }) => {
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: progress,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
+
+  const widthInterpolation = animatedWidth.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <View style={styles.uploadProgressContainer}>
+      <Text style={styles.uploadStatusText}>{statusText}</Text>
+      <View style={styles.progressBarBackground}>
+        <Animated.View 
+  style={[styles.progressBarFill, { width: widthInterpolation }]} 
+>
+          {/* Progress text inside the bar */}
+          <Text style={styles.progressTextInside}>{Math.round(progress)}%</Text>
+        </Animated.View>
+      </View>
+      <ActivityIndicator size="small" color="#e68998" style={{ marginTop: 15 }} />
+    </View>
+  );
+};
 
 export default function HomeScreen() {
   const [inputText, setInputText] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatusText, setUploadStatusText] = useState('Initializing upload...');
+  
   const userName = 'Prism'; 
 
   const router = useRouter(); 
 
-  // Gradient animation setup
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -59,8 +99,91 @@ export default function HomeScreen() {
     y: 1,
   };
 
-  const handleUploadNewOutfit = () => {
-    console.log('Upload New Outfit button pressed!');
+  const uploadImagesToServer = async (assets: ImagePicker.ImagePickerAsset[]) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadStatusText(`Preparing ${assets.length} images...`);
+
+    const totalSteps = assets.length + 2; 
+    let currentStep = 0;
+    const UPLOAD_ENDPOINT = 'YOUR_CHROMA_DB_VECTOR_SERVER_ENDPOINT';
+    
+    const simulateDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    for (const asset of assets) {
+      currentStep++;
+      const fileName = asset.fileName || `outfit-image-${Date.now()}.jpg`;
+      const fileType = asset.mimeType || 'image/jpeg';
+      const uri = asset.uri;
+
+      setUploadStatusText(`Uploading image ${currentStep} of ${assets.length}: ${fileName}`);
+      setUploadProgress(Math.floor((currentStep / totalSteps) * 100));
+
+      try {
+        /*
+        const formData = new FormData();
+        formData.append('file', {
+          uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+          type: fileType,
+          name: fileName,
+        } as any);
+        formData.append('userId', userName); // Example of sending extra data
+
+        const response = await fetch(UPLOAD_ENDPOINT, {
+          method: 'POST',
+          body: formData,
+          // Add headers like 'Authorization' or 'Content-Type' if necessary
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        // const result = await response.json(); // Process server response
+        */
+        
+        await simulateDelay(600); 
+      } catch (error) {
+        console.error('Upload error:', error);
+        Alert.alert('Upload Failed', `Could not upload image. Please check server connection. Details: ${error}`);
+        setIsUploading(false);
+        return; 
+      }
+    }
+    
+    currentStep++;
+    setUploadStatusText('Finding your fashion twin...');
+    setUploadProgress(Math.floor((currentStep / totalSteps) * 100));
+    await simulateDelay(1500); 
+
+    currentStep++;
+    setUploadStatusText('Redirecting to model analysis...');
+    setUploadProgress(100);
+    await simulateDelay(500); 
+
+    setIsUploading(false);
+    router.push("/screens/model"); 
+  };
+  
+  const handleUploadNewOutfit = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Denied', 'Permission to access the photo gallery is required to upload outfits.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      uploadImagesToServer(result.assets);
+    } else if (result.canceled) {
+      console.log('User cancelled image selection.');
+    }
   };
 
   const handleMyCloset = () => {
@@ -96,9 +219,10 @@ export default function HomeScreen() {
         style={styles.keyboardAvoidingContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        {/* Disable dismissal of keyboard when uploading */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} disabled={isUploading}>
           <View style={styles.scrollContentContainer}>
-            {/* Profile Picture */}
+            {/* Profile Picture (always visible) */}
             <View style={styles.topRightProfile}>
               <TouchableOpacity onPress={handleProfilePress} style={styles.profileContainer}>
                 <View style={styles.profilePicBorder}>
@@ -109,63 +233,58 @@ export default function HomeScreen() {
 
             {/* Main Content Box */}
             <View style={styles.contentBox}>
-              <Text style={styles.greetingText}>
-                Hey {userName}, ask me anything about your style! ✨
-              </Text>
+              {/* Conditional rendering based on upload state */}
+              {isUploading ? (
+                <UploadProgressView progress={uploadProgress} statusText={uploadStatusText} />
+              ) : (
+                <>
+                  <Text style={styles.greetingText}>
+                    Hey {userName}, ask me anything about your style! ✨
+                  </Text>
 
-              {/* AI Input Field with Send button */}
-              <View style={styles.aiInputWrapper}>
-                <TextInput
-                  style={styles.aiInputField}
-                  placeholder="Looking for inspiration? Try asking me.."
-                  placeholderTextColor="#B0B0B0"
-                  value={inputText}
-                  onChangeText={setInputText}
-                  multiline={true}
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
-                <TouchableOpacity style={styles.sendButton} onPress={handleAskAI}>
-                  <Ionicons name="send" size={18} color="#d07988ff" />
-                </TouchableOpacity>
-              </View>
+                  {/* AI Input Field with Send button */}
+                  <View style={styles.aiInputWrapper}>
+                    <TextInput
+                      style={styles.aiInputField}
+                      placeholder="Looking for inspiration? Try asking me.."
+                      placeholderTextColor="#B0B0B0"
+                      value={inputText}
+                      onChangeText={setInputText}
+                      multiline={true}
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                    />
+                    <TouchableOpacity style={styles.sendButton} onPress={handleAskAI}>
+                      <Ionicons name="send" size={18} color="#d07988ff" />
+                    </TouchableOpacity>
+                  </View>
 
-              {/* Buttons Row */}
-              <View style={styles.buttonsRow}>
-                {/* Upload New Outfit Button with flowy gradient */}
-                <TouchableOpacity onPress={handleUploadNewOutfit} style={{ flex: 1 }}>
-                  <AnimatedLinearGradient
-                    colors={['#e68998', '#ffb6c1', '#e68998']}
-                    start={start}
-                    end={end}
-                    style={styles.uploadButton}
-                  >
-                    <FontAwesome5 name="camera" size={20} color="#FFF" style={styles.iconStyle} />
-                    <Text style={[styles.buttonText, { color: '#FFF' }]}>Upload Outfit</Text>
-                  </AnimatedLinearGradient>
-                </TouchableOpacity>
+                  {/* Buttons Row */}
+                  <View style={styles.buttonsRow}>
+                    {/* Upload New Outfit Button with flowy gradient */}
+                    <TouchableOpacity onPress={handleUploadNewOutfit} style={{ flex: 1 }}>
+                      <AnimatedLinearGradient
+                        colors={['#e68998', '#ffb6c1', '#e68998']}
+                        start={start}
+                        end={end}
+                        style={styles.uploadButton}
+                      >
+                        <FontAwesome5 name="camera" size={20} color="#FFF" style={styles.iconStyle} />
+                        <Text style={[styles.buttonText, { color: '#FFF' }]}>Upload Outfit</Text>
+                      </AnimatedLinearGradient>
+                    </TouchableOpacity>
 
-                {/* My Closet Button */}
-                <TouchableOpacity
-                  style={styles.myClosetButton}
-                  onPress={handleMyCloset}
-                >
-                  <MaterialCommunityIcons name="hanger" size={22} color="#e68998" style={styles.iconStyle} />
-                  <Text style={styles.buttonText}>My Closet</Text>
-                </TouchableOpacity>
-              </View>
-              
-              {/* 4. TEMPORARY NAVIGATION BUTTONS */}
-              <View style={styles.tempButtonsRow}>
-                <TouchableOpacity onPress={handleGoToModel} style={styles.tempButton}>
-                  <Text style={styles.tempButtonText}>Go to Model.tsx</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleGoToRecommend} style={styles.tempButton}>
-                  <Text style={styles.tempButtonText}>Go to Recommend.tsx</Text>
-                </TouchableOpacity>
-              </View>
-              {/* END TEMPORARY NAVIGATION BUTTONS */}
-              
+                    {/* My Closet Button */}
+                    <TouchableOpacity
+                      style={styles.myClosetButton}
+                      onPress={handleMyCloset}
+                    >
+                      <MaterialCommunityIcons name="hanger" size={22} color="#e68998" style={styles.iconStyle} />
+                      <Text style={styles.buttonText}>My Closet</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
             </View>
 
             <Text style={styles.samsungPrismText}>SAMSUNG PRISM</Text>
@@ -207,7 +326,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 1,
-    borderColor: '#e68998',
+    borderColor: '#bd5afaff',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF',
@@ -228,6 +347,8 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginBottom: 40,
     marginTop: 150,
+    minHeight: 250,
+    justifyContent: 'center', 
   },
   greetingText: {
     fontSize: 18,
@@ -267,7 +388,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     gap: 10,
-    marginBottom: 10, // Added margin to separate rows
+    marginBottom: 10, 
   },
   uploadButton: {
     flexDirection: 'row',
@@ -306,7 +427,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     letterSpacing: 1,
   },
-  // NEW STYLES FOR TEMPORARY BUTTONS
   tempButtonsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -314,16 +434,41 @@ const styles = StyleSheet.create({
     marginTop: 15,
     gap: 10,
   },
-  tempButton: {
-    flex: 1,
-    backgroundColor: '#3498db', // A distinct color for testing
-    borderRadius: 15,
-    paddingVertical: 8,
+  uploadProgressContainer: {
+    width: '100%',
     alignItems: 'center',
+    paddingVertical: 40,
   },
-  tempButtonText: {
-    color: 'white',
-    fontSize: 12,
+  uploadStatusText: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  progressBarBackground: {
+    height: 30,
+    width: '90%',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    overflow: 'hidden',
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#e68998',
+    justifyContent: 'center',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#d07988ff',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingHorizontal: 10,
+    minWidth: 50,
+  },
+  progressTextInside: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFF', 
   }
 });
