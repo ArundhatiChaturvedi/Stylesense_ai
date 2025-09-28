@@ -4,11 +4,11 @@ import { View, Text, StyleSheet, ImageBackground, Image } from 'react-native';
 const Splash: React.FC = () => {
   return (
     <ImageBackground
-      source={require("../assets/splash_bg.png")} 
+      source={require("../assets/images/splash_bg.png")} 
       style={styles.container}
     >
       <Image
-        source={require("../assets/models.png")} 
+        source={require("../assets/images/models.png")} 
         style={styles.modelImage}
       />
 
