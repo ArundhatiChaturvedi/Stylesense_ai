@@ -10,6 +10,10 @@ export default function Layout() {
     BubbleBobble: require("../assets/fonts/BubbleBobble-rg3rx.ttf"),
   });
 
+  const [fontsLoaded] = useFonts({
+    BubbleBobble: require("../assets/fonts/BubbleBobble-rg3rx.ttf"),
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2000);
     return () => clearTimeout(timer);
@@ -19,6 +23,9 @@ export default function Layout() {
     return <Splash />;
   }
 
+  return showSplash ? (
+    <Splash />
+  ) : (
   return showSplash ? (
     <Splash />
   ) : (

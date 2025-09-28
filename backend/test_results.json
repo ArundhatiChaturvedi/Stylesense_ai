@@ -12,9 +12,9 @@
         "status": "healthy",
         "collections": 3,
         "stats": {
-          "User_Styles": 26953,
-          "myntra202305041052": 16767,
-          "Celeb_FBI_Dataset": 389
+          "User_Styles": 1816,
+          "myntra202305041052": 4450,
+          "Celeb_FBI_Dataset": 29
         },
         "client_connected": true
       }
@@ -24,17 +24,17 @@
       "passed": true,
       "message": "Collections loaded: 3",
       "details": {
-        "User_Styles": 26953,
-        "myntra202305041052": 16767,
-        "Celeb_FBI_Dataset": 389
+        "User_Styles": 1816,
+        "myntra202305041052": 4450,
+        "Celeb_FBI_Dataset": 29
       }
     },
     {
       "test": "User Status Check (test_user_comprehensive)",
       "passed": true,
-      "message": "User exists: True",
+      "message": "User exists: False",
       "details": {
-        "Total items": 6461,
+        "Total items": 0,
         "Wardrobe items": 0,
         "Purchase history": 0
       }
@@ -50,12 +50,12 @@
     {
       "test": "Load Order History",
       "passed": true,
-      "message": "Items loaded: 6459",
+      "message": "Items loaded: 20289",
       "details": {
         "success": true,
-        "message": "Loaded 6459 items from order history",
+        "message": "Loaded 20289 items from order history",
         "user_id": "test_user_comprehensive",
-        "items_loaded": 6459
+        "items_loaded": 20289
       }
     },
     {
@@ -63,7 +63,7 @@
       "passed": true,
       "message": "User exists: True",
       "details": {
-        "Total items": 6463,
+        "Total items": 20291,
         "Wardrobe items": 0,
         "Purchase history": 0
       }
@@ -107,10 +107,10 @@
     {
       "test": "User Style Stats",
       "passed": true,
-      "message": "Total items: 6463",
+      "message": "Total items: 20291",
       "details": {
         "user_id": "test_user_comprehensive",
-        "total_style_items": 6463,
+        "total_style_items": 20291,
         "wardrobe_uploads": 0,
         "purchase_history": 0
       }

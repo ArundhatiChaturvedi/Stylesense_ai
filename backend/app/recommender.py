@@ -1,6 +1,7 @@
 import os
 import requests
 import google.generativeai as genai
+import google.generativeai as genai
 from dotenv import load_dotenv
 from .database import CHROMA_COLLECTIONS, COLLECTION_MYNTRA_CATALOG, COLLECTION_USER_STYLES, COLLECTION_CELEB_STYLES, create_embedding
 from sentence_transformers import SentenceTransformer
@@ -40,6 +41,7 @@ def extract_emotion_from_prompt(user_prompt: str):
         return "confident"
 
 def get_weather(location: str):
+    """Calls a real Weather API to get current weather info."""
     """Calls a real Weather API to get current weather info."""
     try:
         if not WEATHER_API_KEY:
@@ -99,7 +101,9 @@ def semantic_search(query_text: str, collection_name: str, user_id: str = None, 
         
         return formatted_results
         
+        
     except Exception as e:
+        print(f"Error in semantic search: {e}")
         print(f"Error in semantic search: {e}")
         return []
 
@@ -261,6 +265,7 @@ def generate_style_recommendation(user_id: str, user_prompt: str, location: str)
     return {
         "celebrity_twin": celebrity_twin,
         "weather_info": weather_info,
+        "final_recommendation": final_recommendation,
         "final_recommendation": final_recommendation,
         "items_owned": items_owned,
         "items_to_buy": items_to_buy,

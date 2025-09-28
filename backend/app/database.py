@@ -33,6 +33,8 @@ def setup_collections(client):
     """Creates the necessary collections if they don't exist."""
     if not client:
         return {}
+    if not client:
+        return {}
     collections = {}
     collections[COLLECTION_USER_STYLES] = client.get_or_create_collection(name=COLLECTION_USER_STYLES)
     collections[COLLECTION_MYNTRA_CATALOG] = client.get_or_create_collection(name=COLLECTION_MYNTRA_CATALOG)
