@@ -16,7 +16,6 @@ export default function Layout() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ✅ Single return, conditions inside
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
