@@ -1,0 +1,119 @@
+{
+  "total_tests": 12,
+  "passed": 12,
+  "failed": 0,
+  "pass_rate": 100.0,
+  "details": [
+    {
+      "test": "API Health Check",
+      "passed": true,
+      "message": "API Version: 2.0.0",
+      "details": {
+        "status": "healthy",
+        "collections": 3,
+        "stats": {
+          "User_Styles": 1816,
+          "myntra202305041052": 4450,
+          "Celeb_FBI_Dataset": 29
+        },
+        "client_connected": true
+      }
+    },
+    {
+      "test": "Collections Status",
+      "passed": true,
+      "message": "Collections loaded: 3",
+      "details": {
+        "User_Styles": 1816,
+        "myntra202305041052": 4450,
+        "Celeb_FBI_Dataset": 29
+      }
+    },
+    {
+      "test": "User Status Check (test_user_comprehensive)",
+      "passed": true,
+      "message": "User exists: False",
+      "details": {
+        "Total items": 0,
+        "Wardrobe items": 0,
+        "Purchase history": 0
+      }
+    },
+    {
+      "test": "Wardrobe Upload (Base64)",
+      "passed": true,
+      "message": "Successfully uploaded 2/2 images",
+      "details": {
+        "uploaded_count": 2
+      }
+    },
+    {
+      "test": "Load Order History",
+      "passed": true,
+      "message": "Items loaded: 20289",
+      "details": {
+        "success": true,
+        "message": "Loaded 20289 items from order history",
+        "user_id": "test_user_comprehensive",
+        "items_loaded": 20289
+      }
+    },
+    {
+      "test": "User Status Check (test_user_comprehensive)",
+      "passed": true,
+      "message": "User exists: True",
+      "details": {
+        "Total items": 20291,
+        "Wardrobe items": 0,
+        "Purchase history": 0
+      }
+    },
+    {
+      "test": "User Styles Search",
+      "passed": true,
+      "message": "Successful searches: 2/2",
+      "details": null
+    },
+    {
+      "test": "Product Catalog Search",
+      "passed": true,
+      "message": "Successful searches: 2/2",
+      "details": null
+    },
+    {
+      "test": "Celebrity Styles Search",
+      "passed": true,
+      "message": "Successful searches: 2/2",
+      "details": null
+    },
+    {
+      "test": "Outfit Recommendations",
+      "passed": true,
+      "message": "Recommendations generated for query: 'business casual outfit'",
+      "details": {
+        "User styles found": 5,
+        "Products suggested": 10,
+        "Style inspiration": 3
+      }
+    },
+    {
+      "test": "AI Style Recommendations",
+      "passed": true,
+      "message": "Successful recommendations: 3/3",
+      "details": {
+        "ai_features": "emotion_extraction, weather_integration, celebrity_matching"
+      }
+    },
+    {
+      "test": "User Style Stats",
+      "passed": true,
+      "message": "Total items: 20291",
+      "details": {
+        "user_id": "test_user_comprehensive",
+        "total_style_items": 20291,
+        "wardrobe_uploads": 0,
+        "purchase_history": 0
+      }
+    }
+  ]
+}
