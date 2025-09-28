@@ -11,7 +11,6 @@ import {
   Dimensions,
 } from "react-native";
 
-// NOTE: Please verify these relative paths are correct for your project
 const profilePic = require("../../assets/images/profile_pic.png");
 const splashBg = require("../../assets/images/splash_bg.png");
 const celebImage = require("../../assets/images/margo.jpg");
