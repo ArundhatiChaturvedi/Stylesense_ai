@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from "react-native";
 
+// NOTE: Please verify these relative paths are correct for your project
 const profilePic = require("../../assets/images/profile_pic.png");
 const splashBg = require("../../assets/images/splash_bg.png");
 const celebImage = require("../../assets/images/margo.jpg");
@@ -27,10 +28,12 @@ type StarSpec = {
   moveRange: number;
 };
 
-const NUM_STARS = 36;
+const NUM_STARS = 46;
 function rand(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
+// --- End Star and Animation Specs ---
+
 
 export default function ModelScreen(): React.ReactElement {
   
@@ -41,7 +44,7 @@ export default function ModelScreen(): React.ReactElement {
         x: rand(8, SCREEN_W - 8),
         y: rand(80, SCREEN_H - 120),
         size: Math.round(rand(8, 18)),
-        twinkleSpeed: rand(900, 3000),
+        twinkleSpeed: rand(400, 1500),
         moveRange: rand(2.5, 8),
       })),
     []
@@ -49,14 +52,15 @@ export default function ModelScreen(): React.ReactElement {
 
   const starAnimsRef = useRef(
     stars.map(() => ({
-      opacity: new Animated.Value(rand(0.2, 1)),
+      opacity: new Animated.Value(rand(0.5, 1)),
       scale: new Animated.Value(rand(0.6, 1.3)),
       translateY: new Animated.Value(0),
     }))
   );
   
-  useEffect(() => {
 
+  useEffect(() => {
+    // Start per-star animations (twinkle + tiny float)
     const starLoops = starAnimsRef.current.map((anim, i) => {
       const spec = stars[i];
 
@@ -82,15 +86,14 @@ export default function ModelScreen(): React.ReactElement {
 
     Animated.stagger(80, starLoops).start();
 
-  }, [stars]); 
+  }, [stars]);
 
   const containerWidth = SCREEN_W * 0.85; 
-
 
   return (
     <ImageBackground source={splashBg} style={styles.background}>
       
-      {/* Background elements (Stars) */}
+      {/* Background elements (Stars Only) */}
       <View style={[StyleSheet.absoluteFill, styles.centerAll, { zIndex: 1 }]} pointerEvents="none">
         {stars.map((s, i) => {
           const anim = starAnimsRef.current[i];
@@ -126,15 +129,20 @@ export default function ModelScreen(): React.ReactElement {
           </TouchableOpacity>
         </View>
 
-        {/* White rounded celeb container (The Card itself) */}
-        <View style={[styles.containerBox, { width: containerWidth }]}>
+        {/* Outer Transparent Container */}
+        <View style={[styles.outerTransparentContainer, { width: containerWidth }]}>
             
-            {/* Celeb Image */}
-            <View style={styles.imageWrapper}>
-                <Image source={celebImage} style={styles.celebImage} />
+            {/* Inner White Card  */}
+            <View style={styles.innerWhiteCard}>
+              
+              {/* Celeb Image Wrapper  */}
+              <View style={styles.imageWrapper}>
+                  <Image source={celebImage} style={styles.celebImage} />
+              </View>
+              
+              {/* Text at the bottom of the white card */}
+              <Text style={styles.celebText}> ✨ Your Celeb Twin ✨</Text>
             </View>
-            
-            <Text style={styles.celebText}>Your Celeberity Twin ✨</Text>
         </View>
         
         <View style={styles.spacer} />
@@ -187,13 +195,14 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
 
-  containerBox: {
-    backgroundColor: "#fff",
+  outerTransparentContainer: {
+    backgroundColor: 'transparent',
     borderRadius: 22,
-    padding: 18, 
+    padding: 0,
     alignItems: "center",
     maxWidth: 360,
-    marginTop: 150, // CRITICAL: Positions the card below the profile pic
+    marginTop: 150, 
+
     shadowColor: "#e68998",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
@@ -202,32 +211,40 @@ const styles = StyleSheet.create({
     position: 'relative', 
     zIndex: 2, 
   },
-  
-  // Wrapper for the image to control its size relative to the card
-  imageWrapper: {
+
+  innerWhiteCard: {
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)', 
+    padding: 6, 
     width: '100%', 
-    aspectRatio: 0.8, 
+    alignItems: 'center',
+},
+  
+ imageWrapper: {
+    width: '99%', 
+    height: 490,
     borderRadius: 16, 
     overflow: 'hidden', 
-    marginBottom: 10,
+    marginBottom: 0, 
     alignItems: 'center', 
     justifyContent: 'center', 
-  },
+},
 
-  celebImage: {
-    width: "100%",
-    height: "100%",
+ celebImage: {
+    width: "100%", 
+    height: "100%", 
     resizeMode: "contain", 
-  },
-
-  celebText: {
+},
+ celebText: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#333",
+    color: "#2a2828ff",
     textAlign: "center",
+    marginTop: 8, 
     paddingBottom: 5, 
-  },
-
+},
   samsungPrismText: {
     position: 'absolute', 
     bottom: 20,
@@ -239,8 +256,14 @@ const styles = StyleSheet.create({
   spacer: {
     height: 60, 
   },
- 
+
   centerAll: { justifyContent: "center", alignItems: "center" },
-  star: { position: "absolute", color: "#fff", textShadowColor: "rgba(255, 180, 200, 0.9)", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6, transform: [{ rotate: "0deg" }] },
-  
+  star: { 
+    position: "absolute", 
+    color: "#fff", 
+    textShadowColor: "rgba(255, 180, 200, 0.9)", 
+    textShadowOffset: { width: 0, height: 0 }, 
+    textShadowRadius: 6, 
+    transform: [{ rotate: "0deg" }] 
+  },
 });
