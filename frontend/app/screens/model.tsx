@@ -17,7 +17,7 @@ const celebImage = require("../../assets/images/margo.jpg");
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
-// --- Star and Animation Specs (Keep these for the star effect) ---
+// --- Star and Animation Specs ---
 type StarSpec = {
   id: string;
   x: number;
@@ -31,9 +31,7 @@ const NUM_STARS = 36;
 function rand(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
-// --- End Star and Animation Specs ---
 
-// We only need the star animations, the glowAnim is no longer necessary.
 export default function ModelScreen(): React.ReactElement {
   
   const stars = useMemo<StarSpec[]>(
@@ -57,12 +55,8 @@ export default function ModelScreen(): React.ReactElement {
     }))
   );
   
-  // NOTE: Removed glowAnim useRef here.
-
   useEffect(() => {
-    // NOTE: Removed glow pulse animation here.
 
-    // Start per-star animations (twinkle + tiny float)
     const starLoops = starAnimsRef.current.map((anim, i) => {
       const spec = stars[i];
 
@@ -88,11 +82,10 @@ export default function ModelScreen(): React.ReactElement {
 
     Animated.stagger(80, starLoops).start();
 
-  }, [stars]); // Removed glowAnim from dependency array
+  }, [stars]); 
 
   const containerWidth = SCREEN_W * 0.85; 
 
-  // NOTE: Removed glowScale and glowOpacity interpolations here.
 
   return (
     <ImageBackground source={splashBg} style={styles.background}>
@@ -121,10 +114,10 @@ export default function ModelScreen(): React.ReactElement {
         })}
       </View>
       
-      {/* Main Content Area (No glow wrapper needed now) */}
+      {/* Main Content Area */}
       <View style={styles.scrollContentContainer}>
         
-        {/* Profile Picture (Stays absolute) */}
+        {/* Profile Picture */}
         <View style={styles.topRightProfile}>
           <TouchableOpacity onPress={() => console.log("Profile pressed")} style={styles.profileContainer}>
             <View style={styles.profilePicBorder}>
@@ -134,22 +127,18 @@ export default function ModelScreen(): React.ReactElement {
         </View>
 
         {/* White rounded celeb container (The Card itself) */}
-        {/* NOTE: Removed the contentAndGlowWrapper, containerBox now gets the marginTop */}
         <View style={[styles.containerBox, { width: containerWidth }]}>
             
-            {/* Celeb Image (Now smaller and contained, centered) */}
+            {/* Celeb Image */}
             <View style={styles.imageWrapper}>
                 <Image source={celebImage} style={styles.celebImage} />
             </View>
             
-            {/* Text at the bottom of the white card */}
-            <Text style={styles.celebText}>Your Celeb Twin ✨</Text>
+            <Text style={styles.celebText}>Your Celeberity Twin ✨</Text>
         </View>
         
-        {/* Spacer to push content up and center it visually */}
         <View style={styles.spacer} />
         
-        {/* SAMSUNG PRISM text at the bottom */}
         <Text style={styles.samsungPrismText}>SAMSUNG PRISM</Text>
       </View>
     </ImageBackground>
@@ -198,7 +187,6 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
 
-  // White Card Container - Restored marginTop here
   containerBox: {
     backgroundColor: "#fff",
     borderRadius: 22,
@@ -229,7 +217,7 @@ const styles = StyleSheet.create({
   celebImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "contain", // Ensures the entire image is visible
+    resizeMode: "contain", 
   },
 
   celebText: {
@@ -251,10 +239,8 @@ const styles = StyleSheet.create({
   spacer: {
     height: 60, 
   },
-
-  // Star Styles 
+ 
   centerAll: { justifyContent: "center", alignItems: "center" },
   star: { position: "absolute", color: "#fff", textShadowColor: "rgba(255, 180, 200, 0.9)", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6, transform: [{ rotate: "0deg" }] },
   
-  // NOTE: All glowCircle/glowCircleInner styles have been removed.
 });

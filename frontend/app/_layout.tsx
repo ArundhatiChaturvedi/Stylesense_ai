@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { View, ActivityIndicator } from "react-native";
 import Splash from "../components/Splash";
 
 export default function Layout() {
@@ -16,12 +15,8 @@ export default function Layout() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+  if (showSplash) {
+    return <Splash />;
   }
 
   return showSplash ? (
