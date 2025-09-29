@@ -12,7 +12,7 @@
         "status": "healthy",
         "collections": 3,
         "stats": {
-          "User_Styles": 22107,
+          "User_Styles": 22109,
           "myntra202305041052": 4450,
           "Celeb_FBI_Dataset": 29
         },
@@ -24,7 +24,7 @@
       "passed": true,
       "message": "Collections loaded: 3",
       "details": {
-        "User_Styles": 22107,
+        "User_Styles": 22109,
         "myntra202305041052": 4450,
         "Celeb_FBI_Dataset": 29
       }
@@ -34,9 +34,9 @@
       "passed": true,
       "message": "User exists: True",
       "details": {
-        "Total items": 20291,
-        "Wardrobe items": 0,
-        "Purchase history": 0
+        "Total items": 20293,
+        "Wardrobe items": 4,
+        "Purchase history": 20289
       }
     },
     {
@@ -63,9 +63,9 @@
       "passed": true,
       "message": "User exists: True",
       "details": {
-        "Total items": 20293,
-        "Wardrobe items": 0,
-        "Purchase history": 0
+        "Total items": 20295,
+        "Wardrobe items": 6,
+        "Purchase history": 20289
       }
     },
     {
@@ -107,12 +107,12 @@
     {
       "test": "User Style Stats",
       "passed": true,
-      "message": "Total items: 20293",
+      "message": "Total items: 20295",
       "details": {
         "user_id": "test_user_comprehensive",
-        "total_style_items": 20293,
-        "wardrobe_uploads": 0,
-        "purchase_history": 0
+        "total_style_items": 20295,
+        "wardrobe_uploads": 6,
+        "purchase_history": 20289
       }
     }
   ]

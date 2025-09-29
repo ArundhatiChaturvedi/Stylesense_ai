@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router"; 
+import { useUser } from "../../contexts/UserContext";
 
 const profilePic = require("../../assets/images/profile_pic.png");
 const splashBg = require("../../assets/images/splash_bg.png");
@@ -32,7 +33,8 @@ function rand(min: number, max: number) {
 }
 
 export default function ModelScreen(): React.ReactElement {
-  const router = useRouter();   // ✅ navigation instance
+  const router = useRouter();
+  const { userStatus } = useUser();
 
   const stars = useMemo<StarSpec[]>(
     () =>
@@ -111,9 +113,20 @@ export default function ModelScreen(): React.ReactElement {
 
   const containerWidth = SCREEN_W * 0.85;
 
+  const handleCardPress = () => {
+    if (userStatus?.user_exists) {
+      router.push("/");
+    } else {
+      router.push("/");
+    }
+  };
+
+  const handleProfilePress = () => {
+    router.push("/screens/profile");
+  };
+
   return (
     <ImageBackground source={splashBg} style={styles.background}>
-      {/* Stars */}
       <View
         style={[StyleSheet.absoluteFill, styles.centerAll, { zIndex: 1 }]}
         pointerEvents="none"
@@ -143,12 +156,10 @@ export default function ModelScreen(): React.ReactElement {
         })}
       </View>
 
-      {/* Main Content */}
       <View style={styles.scrollContentContainer}>
-        {/* Profile Picture (unchanged) */}
         <View style={styles.topRightProfile}>
           <TouchableOpacity
-            onPress={() => console.log("Profile pressed")}
+            onPress={handleProfilePress}
             style={styles.profileContainer}
           >
             <View style={styles.profilePicBorder}>
@@ -157,16 +168,15 @@ export default function ModelScreen(): React.ReactElement {
           </TouchableOpacity>
         </View>
 
-        {/* Celeb Card */}
         <View style={[styles.outerTransparentContainer, { width: containerWidth }]}>
           <View style={styles.innerWhiteCard}>
             <TouchableOpacity
               style={styles.imageWrapper}
-              onPress={() => router.push("/screens/recommend")} 
+              onPress={handleCardPress}
             >
               <Image source={celebImage} style={styles.celebImage} />
             </TouchableOpacity>
-            <Text style={styles.celebText}> ✨ Your Celeb Twin ✨</Text>
+            <Text style={styles.celebText}>✨ Your Celeb Twin ✨</Text>
           </View>
         </View>
 

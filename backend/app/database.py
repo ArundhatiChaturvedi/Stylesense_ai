@@ -66,6 +66,29 @@ def process_and_add_item(collection, text, metadata, item_id):
         print(f"Error adding item to collection: {e}")
     return False
 
+def get_user_orders_count(user_id):
+    """Get count of existing user order history items."""
+    try:
+        if COLLECTION_USER_STYLES not in CHROMA_COLLECTIONS:
+            return 0
+        collection = CHROMA_COLLECTIONS[COLLECTION_USER_STYLES]
+        
+        # Get all user items and count purchase_history manually
+        results = collection.get(where={"user_id": user_id})
+        
+        if not results['metadatas']:
+            return 0
+            
+        purchase_history_count = sum(
+            1 for metadata in results['metadatas'] 
+            if metadata.get('source') == 'purchase_history'
+        )
+        return purchase_history_count
+        
+    except Exception as e:
+        print(f"Error getting user orders count: {e}")
+        return 0
+
 def add_user_style_item(user_id: str, description: str, source_type: str, metadata: dict = None):
     """Add a user's style item to the unified collection."""
     try:
@@ -127,8 +150,22 @@ def get_user_items_by_source(user_id: str, source_type: str):
         if COLLECTION_USER_STYLES not in CHROMA_COLLECTIONS:
             return []
         collection = CHROMA_COLLECTIONS[COLLECTION_USER_STYLES]
-        results = collection.get(where={"user_id": user_id, "source": source_type})
-        return results['ids'] if results['ids'] else []
+        
+        # Get all user items first, then filter by source
+        results = collection.get(where={"user_id": user_id})
+        
+        if not results['ids']:
+            return []
+            
+        # Filter by source type manually if needed
+        filtered_ids = []
+        if results['metadatas']:
+            for i, metadata in enumerate(results['metadatas']):
+                if metadata.get('source') == source_type:
+                    filtered_ids.append(results['ids'][i])
+        
+        return filtered_ids
+        
     except Exception as e:
         print(f"Error getting user items by source: {e}")
         return []

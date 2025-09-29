@@ -2,13 +2,10 @@ import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import Splash from "../components/Splash";
+import { UserProvider } from "../contexts/UserContext";
 
 export default function Layout() {
   const [showSplash, setShowSplash] = useState(true);
-
-  const [fontsLoaded] = useFonts({
-    BubbleBobble: require("../assets/fonts/BubbleBobble-rg3rx.ttf"),
-  });
 
   const [fontsLoaded] = useFonts({
     BubbleBobble: require("../assets/fonts/BubbleBobble-rg3rx.ttf"),
@@ -19,18 +16,18 @@ export default function Layout() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) {
+  if (showSplash || !fontsLoaded) {
     return <Splash />;
   }
 
-  return showSplash ? (
-    <Splash />
-  ) : (
-  return showSplash ? (
-    <Splash />
-  ) : (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-    </Stack>
+  return (
+    <UserProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="screens/recommend" />
+        <Stack.Screen name="screens/model" />
+        <Stack.Screen name="screens/profile" />
+      </Stack>
+    </UserProvider>
   );
 }
