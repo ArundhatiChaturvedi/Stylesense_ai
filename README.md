@@ -316,7 +316,7 @@ This hackathon project welcomes contributions and feedback:
 
 ### 📌 Video Demonstration
 You can watch our project demo here:  
-👉 [Demo Submission Link]([https://your-demo-link-here](https://drive.google.com/file/d/1F8FxTCRYTjptE-1BuUL6DIB1U_1TtIPK/view?usp=sharing))
+👉 https://drive.google.com/file/d/1F8FxTCRYTjptE-1BuUL6DIB1U_1TtIPK/view?usp=sharing
 
 ## 📄 License
 
