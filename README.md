@@ -5,6 +5,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B6B?style=for-the-badge)](https://docs.trychroma.com/)
+[![LangChain](https://img.shields.io/badge/LangChain-1E88E5?style=for-the-badge&logo=chainlink&logoColor=white)](https://www.langchain.com/)
 
 > **Your Personal AI Fashion Stylist** - Revolutionizing fashion recommendations through AI-powered wardrobe analysis, celebrity style matching, and weather-aware outfit suggestions.
 
