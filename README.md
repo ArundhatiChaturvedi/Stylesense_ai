@@ -312,6 +312,12 @@ This hackathon project welcomes contributions and feedback:
 - **AI/ML Engineering**: Google Gemini, ChromaDB, Vector Search
 - **UI/UX Design**: Mobile-first design, user experience optimization
 
+## 🎥 Demo Submission
+
+### 📌 Video Demonstration
+You can watch our project demo here:  
+👉 [Demo Submission Link]([https://your-demo-link-here](https://drive.google.com/file/d/1F8FxTCRYTjptE-1BuUL6DIB1U_1TtIPK/view?usp=sharing))
+
 ## 📄 License
 
 This project is created for the Samsung Prism GenAI Hackathon 2025. See [LICENSE](LICENSE) file for details.
